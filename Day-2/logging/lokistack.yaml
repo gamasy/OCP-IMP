@@ -1,0 +1,90 @@
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: logging-loki
+  namespace: openshift-logging
+spec:
+  hashRing:
+    memberlist:
+      instanceAddrType: podIP
+    type: memberlist
+  limits:
+    global:
+      queries:
+        queryTimeout: 3m
+      retention:
+        days: 14
+  size: 1x.small
+  managementState: Managed
+  storage:
+    schemas:
+    - effectiveDate: "2024-10-01"
+      version: v13
+    secret:
+      name: logging-loki-odf
+      type: s3
+    tls:
+      caName: openshift-service-ca.crt
+  storageClassName: <storage_class>   # ocs-storagecluster-ceph-rbd
+  tenants:
+    mode: openshift-logging
+  template:
+    compactor:
+      nodeSelector:
+        workload: logging-quay
+      tolerations:
+      - key: "node-role.kubernetes.io/infra"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Exists
+    distributor:
+      nodeSelector:
+        workload: logging-quay
+      tolerations:
+      - key: "node-role.kubernetes.io/infra"
+        operator: "Exists"
+        effect: "NoSchedule"
+    gateway:
+      nodeSelector:
+        workload: logging-quay
+      tolerations:
+      - key: "node-role.kubernetes.io/infra"
+        operator: "Exists"
+        effect: "NoSchedule"
+    indexGateway:
+      nodeSelector:
+        workload: logging-quay
+      tolerations:
+      - key: "node-role.kubernetes.io/infra"
+        operator: "Exists"
+        effect: "NoSchedule"
+    ingester:
+      nodeSelector:
+        workload: logging-quay
+      tolerations:
+      - key: "node-role.kubernetes.io/infra"
+        operator: "Exists"
+        effect: "NoSchedule"
+    querier:
+      nodeSelector:
+        workload: logging-quay
+      tolerations:
+      - key: "node-role.kubernetes.io/infra"
+        operator: "Exists"
+        effect: "NoSchedule"
+    queryFrontend:
+      nodeSelector:
+        workload: logging-quay
+      tolerations:
+      - key: "node-role.kubernetes.io/infra"
+        operator: "Exists"
+        effect: "NoSchedule"
+    ruler:
+      nodeSelector:
+        workload: logging-quay
+      tolerations:
+      - key: "node-role.kubernetes.io/infra"
+        operator: "Exists"
+        effect: "NoSchedule"

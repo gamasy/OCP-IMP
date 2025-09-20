@@ -1,0 +1,9 @@
+spec:
+  defaultRoute: true
+  rolloutStrategy: Recreate
+  managementState: Managed
+  replicas: 1
+  storage:
+    managementState: Unmanaged
+    pvc:
+      claim: image-registry-claim

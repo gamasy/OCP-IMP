@@ -1,0 +1,58 @@
+
+oc create -f objectbucketclaim.yaml
+
+##Create a Secret containing the credentials of a pre-provisioned object bucket.
+
+BUCKET_HOST=$(oc get -n openshift-logging configmap loki-bucket-odf -o jsonpath='{.data.BUCKET_HOST}')
+BUCKET_NAME=$(oc get -n openshift-logging configmap loki-bucket-odf -o jsonpath='{.data.BUCKET_NAME}')
+BUCKET_PORT=$(oc get -n openshift-logging configmap loki-bucket-odf -o jsonpath='{.data.BUCKET_PORT}')
+
+ACCESS_KEY_ID=$(oc get -n openshift-logging secret loki-bucket-odf -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+SECRET_ACCESS_KEY=$(oc get -n openshift-logging secret loki-bucket-odf -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+
+
+oc -n openshift-logging create secret generic logging-loki-odf \
+--from-literal access_key_id=$ACCESS_KEY_ID \
+--from-literal access_key_secret=$SECRET_ACCESS_KEY \
+--from-literal bucketnames=$BUCKET_NAME \
+--from-literal endpoint=$BUCKET_HOST:$BUCKET_PORT
+
+
+
+oc create -f lokistack.yaml
+
+
+
+
+### Configure the Red Hat Openshift Logging Operator through the ClusterLogForwarder CR.
+# Create ServiceAccount for the collector
+oc create sa collector -n openshift-logging
+
+# Add cluster role to collector SA
+oc adm policy add-cluster-role-to-user logging-collector-logs-writer -z collector
+
+# Add cluster roles to collector SA for application, audit, and infrastructure logs collection
+oc adm policy add-cluster-role-to-user collect-application-logs -z collector
+oc adm policy add-cluster-role-to-user collect-audit-logs -z collector
+oc adm policy add-cluster-role-to-user collect-infrastructure-logs -z collector
+
+
+
+oc create -f clusterlogforwarder.yaml
+
+
+oc create -f uiplugin.yaml
+
+
+
+oc create -f logfilemetricexporter.yaml
+
+
+
+
+
+
+
+
+
+

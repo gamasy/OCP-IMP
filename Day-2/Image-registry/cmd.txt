@@ -1,0 +1,5 @@
+$ oc apply -f image-registry-pvc.yaml
+$ oc get pvc 
+$ oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch-file=./image-registry-storage-patch.yaml
+$ oc get pods -n openshift-image-registry (look out for image-registry-xxx pod)
+$ oc registry info

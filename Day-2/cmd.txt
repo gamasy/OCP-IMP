@@ -1,0 +1,9 @@
+# Remove All content sources, all the crashloopback pod should go away.
+
+$ oc project openshift-marketplace
+$ oc get pods
+$ oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+$ oc get pods
+
+
+

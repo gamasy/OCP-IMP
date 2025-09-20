@@ -1,0 +1,48 @@
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: collector
+  namespace: openshift-logging
+spec:
+  collector:
+    tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/infra
+      operator: Exists
+  managementState: Managed
+  serviceAccount:
+    name: collector
+  outputs:
+  - name: default-lokistack
+    type: lokiStack
+    lokiStack:
+      authentication:
+        token:
+          from: serviceAccount
+      target:
+        name: logging-loki
+        namespace: openshift-logging
+    tls:
+      ca:
+        configMapName: openshift-service-ca.crt
+        key: service-ca.crt
+  - name: external-es
+    type: elasticsearch
+    elasticsearch:
+      version: 8
+      url: <http_or_https>://elasticsearch.example.com:<port>   # https: create a secret for TLS communication; must contain a ca-bundle.crt key that points to the certificate it represents // otherwise, create a secret containing a username and password
+  pipelines:
+  - name: default-logstore
+    inputRefs:
+    - audit
+    - application
+    - infrastructure
+    outputRefs:
+    - default-lokistack
+  - name: external-elasticsearch
+    inputRefs:
+    - audit
+    - application
+    - infrastructure
+    outputRefs:
+    - external-es

@@ -1,0 +1,34 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: ldap-group-syncer
+  namespace: ldap-sync
+data:
+  sync.yaml: |
+    kind: LDAPSyncConfig
+    apiVersion: v1
+    url: "ldaps://ipoc.onempa.gov.sg:636/DC=ipoc,DC=onempa,DC=gov,DC=sg?sAMAccountName"
+    insecure: false
+    bindDN: "CN=svc-ipoc-ocpbind,OU=Non-Interactive,OU=ServiceAccounts,OU=IPOC-PRD,DC=ipoc,DC=onempa,DC=gov,DC=sg"
+    bindPassword:
+      file: "/etc/secrets/bindPassword"
+    ca: /etc/ldap-ca/ca.crt
+    rfc2307:
+      groupsQuery:
+        baseDN: "OU=Groups,OU=IPOC-PRD,DC=ipoc,DC=onempa,DC=gov,DC=sg"
+        scope: sub
+        filter: "(objectClass=group)"
+        derefAliases: never
+        pageSize: 0
+      groupUIDAttribute: dn
+      groupNameAttributes: [ cn ]
+      groupMembershipAttributes: [ member ]
+      usersQuery:
+        baseDN: "OU=Users,OU=IPOC-PRD,DC=ipoc,DC=onempa,DC=gov,DC=sg"
+        scope: sub
+        derefAliases: never
+        pageSize: 0
+      userUIDAttribute: dn
+      userNameAttributes: [ sAMAccountName ]
+      tolerateMemberNotFoundErrors: false
+      tolerateMemberOutOfScopeErrors: false

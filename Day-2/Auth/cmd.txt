@@ -1,0 +1,120 @@
+### Create a HTPasswd flat file with a username and hashed password.
+
+htpasswd -bc htpasswd-local <username> <password>
+
+#####Create a Secret object that contains the htpasswd users file.
+
+
+oc create secret generic htpasswd-secret --from-file htpasswd=./htpasswd-local -n openshift-config
+
+#### Define and add a htpasswd identity provider resource that references the secret.
+
+# oc edit oauth/cluster
+
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - htpasswd:
+      fileData:
+        name: htpasswd-secret
+    mappingMethod: claim
+    name: Local Users
+    type: HTPasswd
+
+
+
+# Monitor openshift authentication
+watch oc get pods -n openshift-authentication
+
+# Add cluster-admin privileges to newly created user (if applicable)
+oc adm policy add-cluster-role-to-user cluster-admin ipocadmin
+
+
+##### Configuring LDAP for OAuth
+
+##Create a Secret containing a bindPassword.
+
+
+oc create secret generic ldap-secret --from-literal=bindPassword=<secret> -n openshift-config
+
+
+##Create a ConfigMap object containing the certificate authority
+
+oc create configmap ldap-ca-config-map --from-file=ca.crt=/path/to/ca -n openshift-config
+
+
+
+
+##### Add LDAP as an identity provider.
+
+## oc edit oauth/cluster
+
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - name: Local Users
+    ...
+  - ldap:
+      attributes:
+        email: []
+        id:
+        - sAMAccountName
+        name:
+        - cn
+        preferredUsername:
+        - sAMAccountName
+      bindDN: CN=svc-ipoc-ocpbind,OU=Non-Interactive,OU=ServiceAccounts,OU=IPOC-PRD,DC=ipoc,DC=onempa,DC=gov,DC=sg
+      bindPassword:
+        name: ldap-bind-password-tf5wm
+      ca:
+        name: ldap-ca-g55t8
+      insecure: false
+      url: ldaps://ipoc.onempa.gov.sg:636/DC=ipoc,DC=onempa,DC=gov,DC=sg?sAMAccountName
+    mappingMethod: claim
+    name: LDAP
+    type: LDAP
+
+
+## Monitor openshift authentication
+watch oc get pods -n openshift-authentication
+
+
+####LDAP Group Sync
+
+
+### Create a new project to run the cron job.
+
+oc new-project ldap-sync
+
+oc create -f ldap-sync-serviceaccount.yaml
+
+oc create -f ldap-sync-clusterrole.yaml
+
+oc create -f ldap-sync-rolebinding.yaml
+
+oc create -f ldap-sync-configmap.yaml
+
+oc create -f ldap-sync-cronjob.yaml
+
+#### Verify the group sync by trigerring a job.
+
+oc -n ldap-sync create job test-001 --from=cronjobs/cronjob-ldap-group-sync
+
+oc -n ldap-sync logs test-001-xxx
+
+# Output
+## group/xxx
+## group/xxxx
+
+oc get groups
+
+
+### Add cluster-admin role to members of a specific group.
+
+oc adm policy add-cluster-admin-to-group cluster-admin OCP-Cluster-AdminGroup
