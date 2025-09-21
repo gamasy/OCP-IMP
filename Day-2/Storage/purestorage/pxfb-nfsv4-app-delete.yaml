@@ -1,0 +1,14 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: pxfb-nfsv4-app-delete
+allowVolumeExpansion: true
+provisioner: pxd.portworx.com
+volumeBindingMode: Immediate
+reclaimPolicy: Delete
+mountOptions:
+  - nfsvers=4.1
+  - tcp
+parameters:
+  backend: pure_file
+  pure_export_rules: '*(rw,no_root_squash)'

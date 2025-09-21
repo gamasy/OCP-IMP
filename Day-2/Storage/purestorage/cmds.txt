@@ -1,0 +1,41 @@
+
+
+
+oc create ns pure-csi
+
+
+oc create secret generic px-pure-secret --namespace pure-csi --from-file=pure.json=pure.json
+
+
+oc -n pure-csi create secret docker-registry px-image-repository \
+    --docker-server=quay.dev.tiger.openinnovation.ai:8443 \
+    --docker-username=<USER> \
+    --docker-password=<PASSWORD>
+
+oc -n kube-system create secret docker-registry px-image-repository \
+    --docker-server=quay.dev.tiger.openinnovation.ai:8443 \
+    --docker-username=<USER> \
+    --docker-password=<PASSWORD>
+
+
+oc -n pure-csi create configmap px-versions --from-file=versions.yaml
+
+
+kubectl label nodes <NODE1 NODE2 NODE3> px/metadata-node=true
+
+
+oc apply -f px-operator.yaml
+
+
+oc apply -f px-storage-cluster.yaml
+
+
+k exec -it <pod name> -c portworx -- /opt/pwx/bin/pxctl status
+
+
+k exec -it <pod name> -c portworx -- /opt/pwx/bin/pxctl cd list
+
+
+
+
+

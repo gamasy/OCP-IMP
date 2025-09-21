@@ -1,0 +1,33 @@
+# SOURCE: https://install.portworx.com/25.6?oem=px-csi&operator=true&ce=pure&csi=true&stork=false&mon=true&promop=true&kbver=1.31.9&ns=pure-csi&osft=true&c=px-tiger-dev-cluster-b7bbf562-23ac-47a1-bf4e-8df8b1dff61d&r=17001&pureSanType=ISCSI&tel=false&reg=quay.dev.tiger.openinnovation.ai:8443&rsec=px-image-repository
+kind: StorageCluster
+apiVersion: core.libopenstorage.org/v1
+metadata:
+  name: px-tiger-dev-cluster-b7bbf562-23ac-47a1-bf4e-8df8b1dff61d
+  namespace: pure-csi
+  annotations:
+    portworx.io/install-source: "https://install.portworx.com/25.6?oem=px-csi&operator=true&ce=pure&csi=true&stork=false&mon=true&promop=true&kbver=1.31.9&ns=pure-csi&osft=true&c=px-tiger-dev-cluster-b7bbf562-23ac-47a1-bf4e-8df8b1dff61d&r=17001&pureSanType=ISCSI&tel=false&reg=quay.dev.tiger.openinnovation.ai:8443&rsec=px-image-repository"
+    portworx.io/is-openshift: "true"
+    portworx.io/misc-args: "--oem px-csi"
+spec:
+  image: portworx/oci-monitor:25.6.0
+  imagePullPolicy: Always
+  customImageRegistry: quay.dev.tiger.openinnovation.ai:8443
+  imagePullSecret: px-image-repository
+  kvdb:
+    internal: true
+  cloudStorage:
+    kvdbDeviceSpec: "mountOptions=vers=4.1;size=64"
+  startPort: 17001
+  stork:
+    enabled: false
+  csi:
+    enabled: true
+  monitoring:
+    telemetry:
+      enabled: false
+    prometheus:
+      enabled: false
+      exportMetrics: false
+  env:
+  - name: PURE_FLASHARRAY_SAN_TYPE
+    value: "ISCSI"

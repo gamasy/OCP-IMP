@@ -1,0 +1,9 @@
+{
+    "FlashBlades": [
+      {
+       "MgmtEndPoint": "<MGMT",
+       "APIToken": "<TOKEN",
+       "NFSEndPoint": "<NFS>"
+     }
+    ]
+}
